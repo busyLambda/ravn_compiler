@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/busylambda/raven/parser"
 )
@@ -26,34 +28,36 @@ func main() {
 	// 	fmt.Println(token.String())
 	// }
 	// Write a repl for the lexer
+	scanner := bufio.NewScanner(os.Stdin)
 
-	for {
-		repl()
-		var command string
-		fmt.Scanln(&command)
+	fmt.Printf("[Welcome to the RAVN 0.1 LEXER/PARSER REPL]\n\nType .help for help duh...\n\n")
+	repl()
+	for scanner.Scan() {
+		command := cleanInput(scanner.Text())
 
 		switch command {
-		case "clear":
+		case ".clear":
 			clearScreen()
-		case "exit":
+		case ".exit":
 			os.Exit(0)
-		case "help":
-			fmt.Println("Commands: clear, exit, help")
+		case ".help":
+			fmt.Println("# Commands\n - .clear\n - .exit\n - .help")
 		default:
-			scanner := parser.NewScanner(command)
+			parser := parser.NewParser(command)
 
-			for {
-				tokenKind, literal := scanner.Scan()
-				if tokenKind == parser.EOF {
-					break
-				}
-
-				token := parser.NewToken(tokenKind, literal)
-
-				fmt.Println(token.String())
-			}
+			parser.NextNode()
 		}
+
+		repl()
 	}
+	fmt.Println()
+}
+
+// cleanInput preprocesses input to the db repl
+func cleanInput(text string) string {
+	output := strings.TrimSpace(text)
+	output = strings.ToLower(output)
+	return output
 }
 
 func repl() {
