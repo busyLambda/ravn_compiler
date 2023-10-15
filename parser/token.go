@@ -66,6 +66,7 @@ const (
 	KW_OR
 	KW_IS
 	KW_ISNOT
+	KW_ASM
 
 	RV_T_I128 // Reserved symbols
 	RV_T_I64
