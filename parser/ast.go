@@ -5,8 +5,12 @@ type Expr interface{}
 type Stmt interface{}
 
 type Root struct {
-	Name  *Identifier
+	Name  string
 	Decls []Decl
+}
+
+func NewAstRoot(module string) *Root {
+	return &Root{Name: module, Decls: []Decl{}}
 }
 
 type FuncDecl struct {
@@ -22,12 +26,12 @@ type BlockStmt struct {
 }
 
 type FuncType struct {
-	Params *FieldList
+	Params []FuncParam
 }
 
-type FieldList struct {
-	Opening int
-	Closing int
+type FuncParam struct {
+	Ident *Identifier
+	Type  *Identifier
 }
 
 type Identifier struct {
@@ -54,6 +58,8 @@ type ObjectKind int
 
 const (
 	FUNC ObjectKind = iota
+	FUNC_PARAM
+	FUNC_PARAM_TYPE
 )
 
 type ExprStmt struct {

@@ -43,7 +43,7 @@ func main() {
 		case ".help":
 			fmt.Println("# Commands\n - .clear\n - .exit\n - .help")
 		default:
-			parser := parser.NewParser(command)
+			parser := parser.NewParser(command, "repl")
 
 			parser.NextNode()
 		}
@@ -53,7 +53,7 @@ func main() {
 	fmt.Println()
 }
 
-// cleanInput preprocesses input to the db repl
+// cleanInput preprocesses input to the repl.
 func cleanInput(text string) string {
 	output := strings.TrimSpace(text)
 	output = strings.ToLower(output)
