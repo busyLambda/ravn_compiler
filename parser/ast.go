@@ -65,3 +65,9 @@ const (
 type ExprStmt struct {
 	Xpr Expr
 }
+
+type DeclStmt struct {
+}
+
+type DeclAssignStmt struct {
+}

@@ -40,6 +40,8 @@ const (
 	MUL
 	MOD
 	REF
+	PIPE
+	EQ
 
 	DEC // --
 	INC // ++
@@ -54,12 +56,16 @@ const (
 	R_BRACK
 	L_CURLY
 	R_CURLY
+	L_BLOCK
+	R_BLOCK
 
 	KW_FN
+	KW_WITH
 	KW_LET
 	KW_CONST
 	KW_STRUCT
 	KW_ENUM
+	KW_MATCH
 	KW_IF
 	KW_ELSE
 	KW_AND
