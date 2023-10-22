@@ -2,6 +2,8 @@ package parser
 
 import (
 	"fmt"
+
+	"github.com/busylambda/raven/symtab"
 )
 
 type Parser struct {
@@ -39,7 +41,7 @@ func (p *Parser) parseFuncDecl() (fd FuncDecl) {
 	if tok.kind != IDENT {
 		fmt.Printf("Expected identifier after keyword `fn` instead found -> %s\n", tok.String())
 	} else {
-		fd.Name = NewIdentifier(tok.literal, Span{}, Object{FUNC, tok.literal})
+		fd.Name = NewIdentifier(tok.literal, tok.span, Object{FUNC, tok.literal})
 		tok = p.ScanSkipWhitespace()
 		switch tok.kind {
 		case L_BRACK:
@@ -170,14 +172,14 @@ func (p *Parser) parseFuncType() (*FuncType, error) {
 			// Fn param -> `identifier`
 			case IDENT:
 				var param FuncParam
-				param.Ident = NewIdentifier(tok.literal, Span{}, Object{FUNC_PARAM, tok.literal})
+				param.Ident = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM, tok.literal})
 
 				tok := p.ScanSkipWhitespace()
 
 				// Fn param type
 				switch tok.kind {
 				case IDENT:
-					param.Type = NewIdentifier(tok.literal, Span{}, Object{FUNC_PARAM_TYPE, tok.literal})
+					param.Type = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM_TYPE, tok.literal})
 					ft.Params = append(ft.Params, param)
 				default:
 					return nil, fmt.Errorf("Expected type after function parameter identifier, instead found -> `%s`\n", tok.String())
@@ -192,7 +194,7 @@ func (p *Parser) parseFuncType() (*FuncType, error) {
 
 			switch tok.kind {
 			case IDENT:
-				param.Type = NewIdentifier(tok.literal, Span{}, Object{FUNC_PARAM_TYPE, tok.literal})
+				param.Type = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM_TYPE, tok.literal})
 				ft.Params = append(ft.Params, param)
 			default:
 				return nil, fmt.Errorf("Expected type after function parameter identifier, instead found -> `%s`\n", tok.String())
@@ -207,7 +209,7 @@ func (p *Parser) ScanSkipWhitespace() Token {
 		tokenKind, literal := p.scanner.Scan()
 
 		if tokenKind != WHITESPACE {
-			span := Span{Start: p.scanner.pos - p.scanner.posWithinToken, End: p.scanner.pos}
+			span := symtab.Span{Start: p.scanner.pos - p.scanner.posWithinToken, End: p.scanner.pos}
 			token := NewToken(tokenKind, literal, span)
 			return token
 		}

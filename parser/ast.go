@@ -1,5 +1,7 @@
 package parser
 
+import "github.com/busylambda/raven/symtab"
+
 type Decl interface{}
 type Expr interface{}
 type Stmt interface{}
@@ -35,18 +37,13 @@ type FuncParam struct {
 }
 
 type Identifier struct {
-	Span Span
+	Span symtab.Span
 	Name string
 	Obj  *Object
 }
 
-func NewIdentifier(name string, pos Span, obj Object) *Identifier {
+func NewIdentifier(name string, pos symtab.Span, obj Object) *Identifier {
 	return &Identifier{Name: name, Span: pos, Obj: &obj}
-}
-
-type Span struct {
-	Start int
-	End   int
 }
 
 type Object struct {

@@ -1,14 +1,18 @@
 package parser
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/busylambda/raven/symtab"
+)
 
 type Token struct {
 	kind    TokenKind
 	literal string
-	span    Span
+	span    symtab.Span
 }
 
-func NewToken(kind TokenKind, literal string, span Span) Token {
+func NewToken(kind TokenKind, literal string, span symtab.Span) Token {
 	return Token{kind, literal, span}
 }
 
