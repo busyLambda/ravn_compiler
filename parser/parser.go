@@ -19,12 +19,12 @@ func NewParser(input string, module string) *Parser {
 
 func (p *Parser) NextNode() {
 	for {
-		tokenKind, _ := p.ScanSkipWhitespace()
-		if tokenKind == EOF {
+		tok := p.ScanSkipWhitespace()
+		if tok.kind == EOF {
 			break
 		}
 
-		switch tokenKind {
+		switch tok.kind {
 		case KW_FN:
 			p.parseFuncDecl()
 		default:
@@ -34,16 +34,14 @@ func (p *Parser) NextNode() {
 }
 
 func (p *Parser) parseFuncDecl() (fd FuncDecl) {
-	tokenKind, literal := p.ScanSkipWhitespace()
-	token := Token{tokenKind, literal}
+	tok := p.ScanSkipWhitespace()
 
-	if tokenKind != IDENT {
-		fmt.Printf("Expected identifier after keyword `fn` instead found -> %s\n", token.String())
+	if tok.kind != IDENT {
+		fmt.Printf("Expected identifier after keyword `fn` instead found -> %s\n", tok.String())
 	} else {
-		fd.Name = NewIdentifier(literal, Span{}, Object{FUNC, literal})
-		tokenKind, literal = p.ScanSkipWhitespace()
-		token := Token{tokenKind, literal}
-		switch tokenKind {
+		fd.Name = NewIdentifier(tok.literal, Span{}, Object{FUNC, tok.literal})
+		tok = p.ScanSkipWhitespace()
+		switch tok.kind {
 		case L_BRACK:
 			// Get the function args
 			t_ype, err := p.parseFuncType()
@@ -52,9 +50,9 @@ func (p *Parser) parseFuncDecl() (fd FuncDecl) {
 			}
 
 			fd.Type = t_ype
-			tokenKind, literal = p.ScanSkipWhitespace()
+			tok = p.ScanSkipWhitespace()
 			// token := Token{tokenKind, literal}
-			switch tokenKind {
+			switch tok.kind {
 			// Got function body
 			case L_CURLY:
 				bs, err := p.parseBlockStmt()
@@ -70,7 +68,7 @@ func (p *Parser) parseFuncDecl() (fd FuncDecl) {
 				// Get the array type
 			}
 		default:
-			fmt.Printf("Expected `(` after identifier in function declaration instead found -> %s\n", token.String())
+			fmt.Printf("Expected `(` after identifier in function declaration instead found -> %s\n", tok.String())
 		}
 	}
 
@@ -79,34 +77,31 @@ func (p *Parser) parseFuncDecl() (fd FuncDecl) {
 
 // Not yet accouting for <> types like Option<T>
 func (p *Parser) parseType() (lit string, err error) {
-	tokenKind, literal := p.ScanSkipWhitespace()
-	token := Token{tokenKind, literal}
-	switch tokenKind {
+	tok := p.ScanSkipWhitespace()
+	switch tok.kind {
 	case IDENT:
-		lit = literal
+		lit = tok.literal
 		return
 	case L_BLOCK:
 		// Get the array type
-		tokenKind, literal := p.ScanSkipWhitespace()
-		token := Token{tokenKind, literal}
-		switch tokenKind {
+		tok := p.ScanSkipWhitespace()
+		switch tok.kind {
 		case IDENT:
-			tokenKind, literal := p.ScanSkipWhitespace()
-			token := Token{tokenKind, literal}
-			switch tokenKind {
+			tok := p.ScanSkipWhitespace()
+			switch tok.kind {
 			case R_BLOCK:
-				return fmt.Sprintf("[%s]", literal), nil
+				return fmt.Sprintf("[%s]", tok.literal), nil
 			default:
-				err = fmt.Errorf("Expected `]` after array type instead found -> %s\n", token.String())
+				err = fmt.Errorf("Expected `]` after array type instead found -> %s\n", tok.String())
 				return
 			}
 
 		default:
-			err = fmt.Errorf("Expected type after `[` instead found -> %s\n", token.String())
+			err = fmt.Errorf("Expected type after `[` instead found -> %s\n", tok.String())
 			return
 		}
 	default:
-		err = fmt.Errorf("Expected type instead found -> %s\n", token.String())
+		err = fmt.Errorf("Expected type instead found -> %s\n", tok.String())
 		return
 	}
 }
@@ -117,37 +112,35 @@ func (p *Parser) parseType() (lit string, err error) {
 
 func (p *Parser) parseBlockStmt() (bs BlockStmt, err error) {
 	for {
-		tokenKind, _ := p.ScanSkipWhitespace()
+		tok := p.ScanSkipWhitespace()
 		//token := Token{tokenKind, literal}
 
-		switch tokenKind {
+		switch tok.kind {
 		case KW_LET:
-			tokenKind, literal := p.ScanSkipWhitespace()
-			token := Token{tokenKind, literal}
-			switch tokenKind {
+			tok := p.ScanSkipWhitespace()
+			switch tok.kind {
 			case IDENT:
-				tokenKind, literal := p.ScanSkipWhitespace()
-				token := Token{tokenKind, literal}
-				switch tokenKind {
+				tok := p.ScanSkipWhitespace()
+				switch tok.kind {
 				case EQ:
 					// Expect Expr
 				case COLON:
 					// Expect Type
 				default:
-					err = fmt.Errorf("Expected `=` or `:` after `identifier` instead found -> %s\n", token.String())
+					err = fmt.Errorf("Expected `=` or `:` after `identifier` instead found -> %s\n", tok.String())
 					return
 				}
 			default:
-				err = fmt.Errorf("Expected `identifier` after `let` instead found -> %s\n", token.String())
+				err = fmt.Errorf("Expected `identifier` after `let` instead found -> %s\n", tok.String())
 				return
 			}
 		case IDENT:
 			// Okay we have a couple of ways to go here
 
-			tokenKind, _ := p.ScanSkipWhitespace()
+			tok := p.ScanSkipWhitespace()
 			// 1. We have a function call
 			// 2. We have a variable declaration
-			switch tokenKind {
+			switch tok.kind {
 			}
 		case R_CURLY:
 			return
@@ -164,60 +157,59 @@ func (p *Parser) parseFuncType() (*FuncType, error) {
 
 	// :3
 	for {
-		tokenKind, literal := p.ScanSkipWhitespace()
-		token := Token{tokenKind, literal}
+		tok := p.ScanSkipWhitespace()
 		switch {
-		case tokenKind == EOF:
-			return nil, fmt.Errorf("Unclosed function: expected `)` found -> %s\n", token.String())
-		case tokenKind == R_BRACK:
+		case tok.kind == EOF:
+			return nil, fmt.Errorf("Unclosed function: expected `)` found -> %s\n", tok.String())
+		case tok.kind == R_BRACK:
 			return &ft, nil
 		// In case we have multiple args we eat the `,`
-		case tokenKind == COMMA && len(ft.Params) > 0:
-			tokenKind, literal := p.ScanSkipWhitespace()
-			switch tokenKind {
+		case tok.kind == COMMA && len(ft.Params) > 0:
+			tok := p.ScanSkipWhitespace()
+			switch tok.kind {
 			// Fn param -> `identifier`
 			case IDENT:
 				var param FuncParam
-				param.Ident = NewIdentifier(literal, Span{}, Object{FUNC_PARAM, literal})
+				param.Ident = NewIdentifier(tok.literal, Span{}, Object{FUNC_PARAM, tok.literal})
 
-				tokenKind, literal := p.ScanSkipWhitespace()
-				token := Token{tokenKind, literal}
+				tok := p.ScanSkipWhitespace()
 
 				// Fn param type
-				switch tokenKind {
+				switch tok.kind {
 				case IDENT:
-					param.Type = NewIdentifier(literal, Span{}, Object{FUNC_PARAM_TYPE, literal})
+					param.Type = NewIdentifier(tok.literal, Span{}, Object{FUNC_PARAM_TYPE, tok.literal})
 					ft.Params = append(ft.Params, param)
 				default:
-					return nil, fmt.Errorf("Expected type after function parameter identifier, instead found -> `%s`\n", token.String())
+					return nil, fmt.Errorf("Expected type after function parameter identifier, instead found -> `%s`\n", tok.String())
 				}
 			}
 		// One arg / first arg
-		case tokenKind == IDENT && len(ft.Params) == 0:
+		case tok.kind == IDENT && len(ft.Params) == 0:
 			var param FuncParam
-			param.Ident = NewIdentifier(literal, Span{}, Object{FUNC_PARAM, literal})
+			param.Ident = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM, tok.literal})
 
-			tokenKind, literal := p.ScanSkipWhitespace()
-			token := Token{tokenKind, literal}
+			tok := p.ScanSkipWhitespace()
 
-			switch tokenKind {
+			switch tok.kind {
 			case IDENT:
-				param.Type = NewIdentifier(literal, Span{}, Object{FUNC_PARAM_TYPE, literal})
+				param.Type = NewIdentifier(tok.literal, Span{}, Object{FUNC_PARAM_TYPE, tok.literal})
 				ft.Params = append(ft.Params, param)
 			default:
-				return nil, fmt.Errorf("Expected type after function parameter identifier, instead found -> `%s`\n", token.String())
+				return nil, fmt.Errorf("Expected type after function parameter identifier, instead found -> `%s`\n", tok.String())
 			}
 		}
 	}
 
 }
 
-func (p *Parser) ScanSkipWhitespace() (TokenKind, string) {
+func (p *Parser) ScanSkipWhitespace() Token {
 	for {
 		tokenKind, literal := p.scanner.Scan()
 
 		if tokenKind != WHITESPACE {
-			return tokenKind, literal
+			span := Span{Start: p.scanner.pos - p.scanner.posWithinToken, End: p.scanner.pos}
+			token := NewToken(tokenKind, literal, span)
+			return token
 		}
 	}
 }

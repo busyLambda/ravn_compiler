@@ -9,8 +9,10 @@ import (
 )
 
 type Scanner struct {
-	reader *bufio.Reader
-	buffer struct {
+	reader         *bufio.Reader
+	pos            int
+	posWithinToken int
+	buffer         struct {
 		prevToken TokenKind
 		literal   string
 	}
@@ -18,7 +20,9 @@ type Scanner struct {
 
 func NewScanner(input string) *Scanner {
 	return &Scanner{
-		reader: bufio.NewReader(strings.NewReader(input)),
+		reader:         bufio.NewReader(strings.NewReader(input)),
+		pos:            0,
+		posWithinToken: 0,
 		buffer: struct {
 			prevToken int
 			literal   string
@@ -30,12 +34,17 @@ func NewScanner(input string) *Scanner {
 }
 
 func (s *Scanner) read() (ch rune, err error) {
+	s.posWithinToken++
+	s.pos++
 	ch, _, err = s.reader.ReadRune()
 	return
 }
 
-func (s *Scanner) Scan() (tokenKind TokenKind, literal string) {
+func (s *Scanner) resetPosWithinToken() {
+	s.posWithinToken = 0
+}
 
+func (s *Scanner) Scan() (tokenKind TokenKind, literal string) {
 	ch, err := s.read()
 	if err != nil {
 		return EOF, ""

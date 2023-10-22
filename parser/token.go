@@ -5,10 +5,11 @@ import "fmt"
 type Token struct {
 	kind    TokenKind
 	literal string
+	span    Span
 }
 
-func NewToken(kind TokenKind, literal string) Token {
-	return Token{kind, literal}
+func NewToken(kind TokenKind, literal string, span Span) Token {
+	return Token{kind, literal, span}
 }
 
 func (t *Token) Literal() string {
