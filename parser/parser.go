@@ -1,7 +1,9 @@
 package parser
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/busylambda/raven/symtab"
 )
@@ -10,12 +12,14 @@ type Parser struct {
 	scanner *Scanner
 	module  string
 	ast     *Root
+	st      *symtab.SymbolTable
 }
 
 func NewParser(input string, module string) *Parser {
 	return &Parser{
 		scanner: NewScanner(input),
 		ast:     NewAstRoot(module),
+		st:      symtab.NewSymTabRoot(),
 	}
 }
 
@@ -41,7 +45,12 @@ func (p *Parser) parseFuncDecl() (fd FuncDecl) {
 	if tok.kind != IDENT {
 		fmt.Printf("Expected identifier after keyword `fn` instead found -> %s\n", tok.String())
 	} else {
+		// Symtab
+		p.st.InsertDecl(symtab.NewSymbol(tok.span, symtab.FUNC), tok.literal)
+		// :3
 		fd.Name = NewIdentifier(tok.literal, tok.span, Object{FUNC, tok.literal})
+
+		// Scan :3
 		tok = p.ScanSkipWhitespace()
 		switch tok.kind {
 		case L_BRACK:
@@ -108,9 +117,29 @@ func (p *Parser) parseType() (lit string, err error) {
 	}
 }
 
-// func (p *Parser) parseLetStmt() (ls LetStmt, err error) {
+func (p *Parser) parseLetStmt() (ds DeclStmt, err error) {
+	tok := p.ScanSkipWhitespace()
+	switch tok.kind {
+	case IDENT:
+		sym := symtab.NewSymbol(tok.span, symtab.VAR)
+		p.st.InsertDecl(sym, tok.literal)
+		tok := p.ScanSkipWhitespace()
+		switch tok.kind {
+		case EQ:
+			// Expect Expr
+		case COLON:
+			// Expect Type
+		default:
+			err = fmt.Errorf("Expected `=` or `:` after `identifier` instead found -> %s\n", tok.String())
+			return
+		}
+	default:
+		err = fmt.Errorf("Expected `identifier` after `let` instead found -> %s\n", tok.String())
+		return
+	}
 
-// }
+	return
+}
 
 func (p *Parser) parseBlockStmt() (bs BlockStmt, err error) {
 	for {
@@ -119,23 +148,7 @@ func (p *Parser) parseBlockStmt() (bs BlockStmt, err error) {
 
 		switch tok.kind {
 		case KW_LET:
-			tok := p.ScanSkipWhitespace()
-			switch tok.kind {
-			case IDENT:
-				tok := p.ScanSkipWhitespace()
-				switch tok.kind {
-				case EQ:
-					// Expect Expr
-				case COLON:
-					// Expect Type
-				default:
-					err = fmt.Errorf("Expected `=` or `:` after `identifier` instead found -> %s\n", tok.String())
-					return
-				}
-			default:
-				err = fmt.Errorf("Expected `identifier` after `let` instead found -> %s\n", tok.String())
-				return
-			}
+			p.parseLetStmt()
 		case IDENT:
 			// Okay we have a couple of ways to go here
 
@@ -214,4 +227,13 @@ func (p *Parser) ScanSkipWhitespace() Token {
 			return token
 		}
 	}
+}
+
+func (p *Parser) SymbtabToJsonFile(filename string) error {
+	file, err := json.MarshalIndent(p.st, "", " ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(filename, file, 0644)
 }

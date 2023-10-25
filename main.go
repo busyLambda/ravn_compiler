@@ -46,6 +46,8 @@ func main() {
 			parser := parser.NewParser(command, "repl")
 
 			parser.NextNode()
+
+			parser.SymbtabToJsonFile("symtab.json")
 		}
 
 		repl()
