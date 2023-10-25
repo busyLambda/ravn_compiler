@@ -1,6 +1,6 @@
 package symtab
 
 type Span struct {
-	Start int
-	End   int
+	Start int `json:"start"`
+	End   int `json:"end"`
 }

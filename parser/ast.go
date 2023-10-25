@@ -64,7 +64,7 @@ type ExprStmt struct {
 }
 
 type DeclStmt struct {
-}
-
-type DeclAssignStmt struct {
+	Left  *Expr
+	Right *Expr
+	Type  *Identifier
 }
