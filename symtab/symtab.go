@@ -8,11 +8,6 @@ type Symbol struct {
 	Ut   UsageType  `json:"usage_type"`
 }
 
-type SymOD struct {
-	Span  Span
-	Usage UsageType
-}
-
 func NewSymbol(span Span, ut UsageType) Symbol {
 	return Symbol{
 		Span: span,

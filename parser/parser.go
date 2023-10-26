@@ -221,8 +221,10 @@ func (p *Parser) ScanSkipWhitespace() Token {
 	for {
 		tokenKind, literal := p.scanner.Scan()
 
+		// span := symtab.Span{Start: p.scanner.pos - p.scanner.posWithinToken, End: p.scanner.pos}
+		span := symtab.NewSpan(p.scanner.pos-p.scanner.posWithinToken, p.scanner.pos)
+		p.scanner.resetPosWithinToken()
 		if tokenKind != WHITESPACE {
-			span := symtab.Span{Start: p.scanner.pos - p.scanner.posWithinToken, End: p.scanner.pos}
 			token := NewToken(tokenKind, literal, span)
 			return token
 		}

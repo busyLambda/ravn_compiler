@@ -135,6 +135,8 @@ func (s *Scanner) Scan() (tokenKind TokenKind, literal string) {
 }
 
 func (s *Scanner) unread() {
+	s.pos--
+	s.posWithinToken--
 	s.reader.UnreadRune()
 }
 
