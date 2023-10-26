@@ -184,6 +184,7 @@ func (p *Parser) parseFuncType() (*FuncType, error) {
 			switch tok.kind {
 			// Fn param -> `identifier`
 			case IDENT:
+				p.st.InsertDecl(symtab.NewSymbol(tok.span, symtab.PARAM), tok.literal)
 				var param FuncParam
 				param.Ident = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM, tok.literal})
 
@@ -201,6 +202,7 @@ func (p *Parser) parseFuncType() (*FuncType, error) {
 		// One arg / first arg
 		case tok.kind == IDENT && len(ft.Params) == 0:
 			var param FuncParam
+			p.st.InsertDecl(symtab.NewSymbol(tok.span, symtab.PARAM), tok.literal)
 			param.Ident = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM, tok.literal})
 
 			tok := p.ScanSkipWhitespace()
