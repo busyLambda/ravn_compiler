@@ -32,7 +32,8 @@ func (p *Parser) NextNode() {
 
 		switch tok.kind {
 		case KW_FN:
-			p.parseFuncDecl()
+			fd := p.parseFuncDecl()
+			p.ast.Decls = append(p.ast.Decls, fd)
 		default:
 			break
 		}
@@ -123,6 +124,9 @@ func (p *Parser) parseLetStmt() (ds DeclStmt, err error) {
 	case IDENT:
 		sym := symtab.NewSymbol(tok.span, symtab.VAR)
 		p.st.InsertDecl(sym, tok.literal)
+
+		// ds.Left =
+
 		tok := p.ScanSkipWhitespace()
 		switch tok.kind {
 		case EQ:
@@ -148,7 +152,12 @@ func (p *Parser) parseBlockStmt() (bs BlockStmt, err error) {
 
 		switch tok.kind {
 		case KW_LET:
-			p.parseLetStmt()
+			ds, perr := p.parseLetStmt()
+			if perr != nil {
+				err = perr
+				return
+			}
+			bs.List = append(bs.List, ds)
 		case IDENT:
 			// Okay we have a couple of ways to go here
 
@@ -235,6 +244,15 @@ func (p *Parser) ScanSkipWhitespace() Token {
 
 func (p *Parser) SymbtabToJsonFile(filename string) error {
 	file, err := json.MarshalIndent(p.st, "", " ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(filename, file, 0644)
+}
+
+func (p *Parser) AstToJsonFile(filename string) error {
+	file, err := json.MarshalIndent(p.ast, "", " ")
 	if err != nil {
 		return err
 	}

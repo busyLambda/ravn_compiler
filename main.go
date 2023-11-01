@@ -48,6 +48,8 @@ func main() {
 			parser.NextNode()
 
 			parser.SymbtabToJsonFile("symtab.json")
+
+			parser.AstToJsonFile("ast.json")
 		}
 
 		repl()

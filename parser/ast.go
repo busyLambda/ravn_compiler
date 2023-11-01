@@ -7,8 +7,8 @@ type Expr interface{}
 type Stmt interface{}
 
 type Root struct {
-	Name  string
-	Decls []Decl
+	Name  string `json:"name"`
+	Decls []Decl `json:"decls"`
 }
 
 func NewAstRoot(module string) *Root {
@@ -16,30 +16,30 @@ func NewAstRoot(module string) *Root {
 }
 
 type FuncDecl struct {
-	Name *Identifier
-	Type *FuncType
-	Body *BlockStmt
+	Name *Identifier `json:"name"`
+	Type *FuncType   `json:"type"`
+	Body *BlockStmt  `json:"body"`
 }
 
 type BlockStmt struct {
-	Opening int
-	List    []Stmt
-	Closing int
+	Opening int    `json:"opening"`
+	List    []Stmt `json:"list"`
+	Closing int    `json:"closing"`
 }
 
 type FuncType struct {
-	Params []FuncParam
+	Params []FuncParam `json:"params"`
 }
 
 type FuncParam struct {
-	Ident *Identifier
-	Type  *Identifier
+	Ident *Identifier `json:"ident"`
+	Type  *Identifier `json:"type"`
 }
 
 type Identifier struct {
-	Span symtab.Span
-	Name string
-	Obj  *Object
+	Span symtab.Span `json:"span"`
+	Name string      `json:"name"`
+	Obj  *Object     `json:"obj"`
 }
 
 func NewIdentifier(name string, pos symtab.Span, obj Object) *Identifier {
@@ -47,8 +47,8 @@ func NewIdentifier(name string, pos symtab.Span, obj Object) *Identifier {
 }
 
 type Object struct {
-	Kind ObjectKind
-	Name string
+	Kind ObjectKind `json:"kind"`
+	Name string     `json:"name"`
 }
 
 type ObjectKind int
@@ -60,11 +60,15 @@ const (
 )
 
 type ExprStmt struct {
-	Xpr Expr
+	Xpr Expr `json:"expr"`
 }
 
 type DeclStmt struct {
-	Left  *Expr
-	Right *Expr
-	Type  *Identifier
+	Left  *Expr       `json:"left"`
+	Right *Expr       `json:"right"`
+	Type  *Identifier `json:"type"`
+}
+
+type IdentExpr struct {
+	Ident *Identifier `json:"ident"`
 }
