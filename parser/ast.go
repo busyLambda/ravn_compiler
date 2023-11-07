@@ -72,3 +72,13 @@ type DeclStmt struct {
 type IdentExpr struct {
 	Ident *Identifier `json:"ident"`
 }
+
+type StructDecl struct {
+	Name   *Identifier     `json:"name"`
+	Fields map[string]Type `json:"fields"`
+}
+
+type StructExpr struct {
+	Type   *Type
+	Fields map[string]Expr `json:"fields"`
+}
