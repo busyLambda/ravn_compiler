@@ -1,10 +1,8 @@
-package parser
+package ast
 
 import "github.com/busylambda/raven/symtab"
 
-type Decl interface{}
 type Expr interface{}
-type Stmt interface{}
 
 type Root struct {
 	Name  string `json:"name"`
@@ -13,12 +11,6 @@ type Root struct {
 
 func NewAstRoot(module string) *Root {
 	return &Root{Name: module, Decls: []Decl{}}
-}
-
-type FuncDecl struct {
-	Name *Identifier `json:"name"`
-	Type *FuncType   `json:"type"`
-	Body *BlockStmt  `json:"body"`
 }
 
 type BlockStmt struct {
@@ -39,16 +31,10 @@ type FuncParam struct {
 type Identifier struct {
 	Span symtab.Span `json:"span"`
 	Name string      `json:"name"`
-	Obj  *Object     `json:"obj"`
 }
 
-func NewIdentifier(name string, pos symtab.Span, obj Object) *Identifier {
-	return &Identifier{Name: name, Span: pos, Obj: &obj}
-}
-
-type Object struct {
-	Kind ObjectKind `json:"kind"`
-	Name string     `json:"name"`
+func NewIdentifier(name string, pos symtab.Span) *Identifier {
+	return &Identifier{Name: name, Span: pos}
 }
 
 type ObjectKind int
@@ -59,23 +45,24 @@ const (
 	FUNC_PARAM_TYPE
 )
 
-type ExprStmt struct {
-	Xpr Expr `json:"expr"`
-}
+type BinOp int
 
-type DeclStmt struct {
-	Left  *Expr       `json:"left"`
-	Right *Expr       `json:"right"`
-	Type  *Identifier `json:"type"`
+const (
+	PLUS BinOp = iota
+	MINUS
+	MULT
+	DIVI
+	MODU
+)
+
+type BinExpr struct {
+	Op    *BinOp `json:"op"`
+	Left  *Expr  `json:"left"`
+	Right *Expr  `json:"right"`
 }
 
 type IdentExpr struct {
 	Ident *Identifier `json:"ident"`
-}
-
-type StructDecl struct {
-	Name   *Identifier     `json:"name"`
-	Fields map[string]Type `json:"fields"`
 }
 
 type StructExpr struct {

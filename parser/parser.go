@@ -5,20 +5,21 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/busylambda/raven/ast"
 	"github.com/busylambda/raven/symtab"
 )
 
 type Parser struct {
 	scanner *Scanner
 	module  string
-	ast     *Root
+	ast     *ast.Root
 	st      *symtab.SymbolTable
 }
 
 func NewParser(input string, module string) *Parser {
 	return &Parser{
 		scanner: NewScanner(input),
-		ast:     NewAstRoot(module),
+		ast:     ast.NewAstRoot(module),
 		st:      symtab.NewSymTabRoot(),
 	}
 }
@@ -40,7 +41,7 @@ func (p *Parser) NextNode() {
 	}
 }
 
-func (p *Parser) parseFuncDecl() (fd FuncDecl) {
+func (p *Parser) parseFuncDecl() (fd ast.FuncDecl) {
 	tok := p.ScanSkipWhitespace()
 
 	if tok.kind != IDENT {
@@ -49,7 +50,7 @@ func (p *Parser) parseFuncDecl() (fd FuncDecl) {
 		// Symtab
 		p.st.InsertDecl(symtab.NewSymbol(tok.span, symtab.FUNC), tok.literal)
 		// :3
-		fd.Name = NewIdentifier(tok.literal, tok.span, Object{FUNC, tok.literal})
+		fd.Name = ast.NewIdentifier(tok.literal, tok.span)
 
 		// Scan :3
 		tok = p.ScanSkipWhitespace()
@@ -118,7 +119,7 @@ func (p *Parser) parseType() (lit string, err error) {
 	}
 }
 
-func (p *Parser) parseLetStmt() (ds DeclStmt, err error) {
+func (p *Parser) parseLetStmt() (ds ast.DeclStmt, err error) {
 	tok := p.ScanSkipWhitespace()
 	switch tok.kind {
 	case IDENT:
@@ -145,7 +146,7 @@ func (p *Parser) parseLetStmt() (ds DeclStmt, err error) {
 	return
 }
 
-func (p *Parser) parseBlockStmt() (bs BlockStmt, err error) {
+func (p *Parser) parseBlockStmt() (bs ast.BlockStmt, err error) {
 	for {
 		tok := p.ScanSkipWhitespace()
 		//token := Token{tokenKind, literal}
@@ -174,10 +175,10 @@ func (p *Parser) parseBlockStmt() (bs BlockStmt, err error) {
 	}
 }
 
-func (p *Parser) parseFuncType() (*FuncType, error) {
-	var ft FuncType
+func (p *Parser) parseFuncType() (*ast.FuncType, error) {
+	var ft ast.FuncType
 
-	ft.Params = []FuncParam{}
+	ft.Params = []ast.FuncParam{}
 
 	// :3
 	for {
@@ -194,15 +195,15 @@ func (p *Parser) parseFuncType() (*FuncType, error) {
 			// Fn param -> `identifier`
 			case IDENT:
 				p.st.InsertDecl(symtab.NewSymbol(tok.span, symtab.PARAM), tok.literal)
-				var param FuncParam
-				param.Ident = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM, tok.literal})
+				var param ast.FuncParam
+				param.Ident = ast.NewIdentifier(tok.literal, tok.span)
 
 				tok := p.ScanSkipWhitespace()
 
 				// Fn param type
 				switch tok.kind {
 				case IDENT:
-					param.Type = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM_TYPE, tok.literal})
+					param.Type = ast.NewIdentifier(tok.literal, tok.span)
 					ft.Params = append(ft.Params, param)
 				default:
 					return nil, fmt.Errorf("Expected type after function parameter identifier, instead found -> `%s`\n", tok.String())
@@ -210,15 +211,15 @@ func (p *Parser) parseFuncType() (*FuncType, error) {
 			}
 		// One arg / first arg
 		case tok.kind == IDENT && len(ft.Params) == 0:
-			var param FuncParam
+			var param ast.FuncParam
 			p.st.InsertDecl(symtab.NewSymbol(tok.span, symtab.PARAM), tok.literal)
-			param.Ident = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM, tok.literal})
+			param.Ident = ast.NewIdentifier(tok.literal, tok.span)
 
 			tok := p.ScanSkipWhitespace()
 
 			switch tok.kind {
 			case IDENT:
-				param.Type = NewIdentifier(tok.literal, tok.span, Object{FUNC_PARAM_TYPE, tok.literal})
+				param.Type = ast.NewIdentifier(tok.literal, tok.span)
 				ft.Params = append(ft.Params, param)
 			default:
 				return nil, fmt.Errorf("Expected type after function parameter identifier, instead found -> `%s`\n", tok.String())
